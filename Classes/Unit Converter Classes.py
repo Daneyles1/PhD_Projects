@@ -112,7 +112,25 @@ class Electric_Field_Class:
             self.Nat = np.array(E)
             self.SI = np.array(E) * NAT_SI_conversion.Nat_to_Newton / NAT_SI_conversion.Nat_to_Coulomb
 
+#Class to hold a Power value or array to access the diffent unit formats
+class Power_Diss_Class:
+    def __init__(self, P, unit:str):
+        if unit.lower() == "si":
+            self.SI = P
+            self.Nat = P * NAT_SI_conversion.Joules_to_Nat * NAT_SI_conversion.Hertz_to_Nat
+        elif unit.lower() == "nat":
+            self.Nat = P
+            self.SI = P * NAT_SI_conversion.Nat_to_Joules * NAT_SI_conversion.Nat_to_Hertz
 
+#Class to hold a Temperature value or array to access the diffent unit formats
+class Temp_Class:
+    def __init__(self, T, unit:str):
+        if unit.lower() == "si":
+            self.SI = T
+            self.Nat = T * NAT_SI_conversion.Kelvin_to_Nat
+        elif unit.lower() == "nat":
+            self.Nat = T
+            self.SI = T * NAT_SI_conversion.Nat_to_Kelvin
 
 
 
