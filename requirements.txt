@@ -3,3 +3,7 @@ numpy
 SMUTHI
 matplotlib
 qutip
+cmath
+pathlib
+sympy
+random

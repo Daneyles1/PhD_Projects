@@ -1,5 +1,6 @@
 import sys
 sys.path.insert(1, "Classes")
+from Unit_Converter_Classes import *
 
 import smuthi.postprocessing.graphical_output as go
 import smuthi.postprocessing.far_field as fd
@@ -15,7 +16,6 @@ import matplotlib.pyplot as plt
 import math
 from scipy import constants as const
 
-from Unit_Converter_Classes import *
 
 
 class Smuthi_Environment: # Contain all information regarding a Environment setup in SMUTHI
