@@ -7,6 +7,7 @@ from Classes.G2_Classes import *
 from Classes.Qutip_Class import *
 from Classes.SMUTHI_Environment_Class import *
 
+from tqdm import tqdm
 from enum import Enum
 
 
@@ -36,6 +37,7 @@ def Generate_Emitter_Configuration(N, Dim, a_wave):
             Pos.append([i*a_wave, 0, 0])
         return Pos
 
+#Generate Dipole Moments
 def Generate_Dipole_Moments(N, Dim):
     Dipole_Moments = []
     for i in range(N**Dim):
@@ -44,16 +46,27 @@ def Generate_Dipole_Moments(N, Dim):
 
 class Sampling_Methods:
 
-    def __init__(self, SOCF_Type: SOCF_Type, Approximation: Approx, N, Dim, m, omega_0=Frequency_Class(1,"Nat")):
+    def __init__(self, SOCF_Type: SOCF_Type, Approximation: Approx, N, Dim, m=2, omega_0=Frequency_Class(1,"Nat"), Num_Samples=1000):
         self.SOCF_Type = SOCF_Type
         self.Approximation = Approximation
         self.N = N
         self.Dim = Dim
         self.m = m
+        self.Num_Samples = Num_Samples
 
         self.Env = Smuthi_Environment()
         self.wave = Distance_Class(2*np.pi/omega_0.Nat, "Nat")
         self.omega_0 = omega_0
+
+
+
+        try:
+        # Works when this file is executed directly as a .py
+            self.repo_root = Path(__file__).resolve().parents[0]
+        except NameError:
+            # Works when running from a Jupyter notebook
+            self.repo_root = Path().resolve()
+
 
     #Generate Filenames for different configurations
     def Generate_Filename(self, t):
@@ -62,6 +75,9 @@ class Sampling_Methods:
 
         if self.Approximation == Approx.MWISE:
             Filename += "_m" + str(self.m)
+            Filename += "_Samples" + str(self.Num_Samples)
+        elif self.Approximation == Approx.PAIR:
+            Filename += "_Samples" + str(self.Num_Samples)
 
         if t == 0:
             Filename += "_t0"
@@ -75,7 +91,7 @@ class Sampling_Methods:
 
     #Generate the Different inverted array datasets
     def Generate_Inverted_Array_Data(self, a_set:np.ndarray, Sampling_Num=100):
-        Inverted_Filepath = "Inverted Array /Data Files/Inverted_Array_Data"
+        Inverted_Filepath = str(self.repo_root / "Data Files" / "Inverted_Array_Data")
         Filename_Str = self.Generate_Filename(0)
         
         Data = Read_Write_Class.Read_From_File(Inverted_Filepath + "/" + Filename_Str)
@@ -83,10 +99,9 @@ class Sampling_Methods:
 
         Dipole_Moments = Dipole_Moment_Class(Generate_Dipole_Moments(self.N, self.Dim), "Nat")
 
-        for a in a_set:
+        for a in tqdm(a_set, desc="Computing g2", unit="config"):
             if a not in seperations:
-                print(a)
-                Emitter_Positions = Generate_Emitter_Configuration(self.N, self.Dim, a)
+                Emitter_Positions = Distance_Class(Generate_Emitter_Configuration(self.N, self.Dim, a*self.wave.Nat), "Nat")
                 G2 = SOCF_Class(self.Env, Emitter_Positions, Dipole_Moments, self.omega_0)
                 if self.SOCF_Type == SOCF_Type.G2:
                     G2.Compute_Decay_Rates()
@@ -102,8 +117,9 @@ class Sampling_Methods:
                 elif self.Approximation == Approx.PAIR:
                     g2 = G2.Gardiner_Sampling(self.SOCF_Type.value, Sampling_Num, 0)
 
-                Read_Write_Class.Write_To_File(Inverted_Filepath + "/" + Filename_Str, a, g2)
-
+                Read_Write_Class.Write_To_File(Inverted_Filepath + "/" + Filename_Str, a, np.real(g2))
+                seperations.add(a)
+        return Inverted_Filepath + "/" + Filename_Str
 
 
 

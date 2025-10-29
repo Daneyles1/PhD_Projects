@@ -1,8 +1,7 @@
 import sys
-sys.path.insert(1, "Classes")
-from Unit_Converter_Classes import *
-from SMUTHI_Environment_Class import *
-from G2_Classes import Emission_Class
+
+from .Unit_Converter_Classes import *
+from .SMUTHI_Environment_Class import *
 
 import cmath
 import numpy as np

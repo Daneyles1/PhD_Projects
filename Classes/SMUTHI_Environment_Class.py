@@ -1,6 +1,5 @@
-import sys
-sys.path.insert(1, "Classes")
-from Unit_Converter_Classes import *
+
+from .Unit_Converter_Classes import *
 
 import smuthi.postprocessing.graphical_output as go
 import smuthi.postprocessing.far_field as fd

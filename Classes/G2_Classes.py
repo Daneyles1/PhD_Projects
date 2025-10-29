@@ -1,7 +1,3 @@
-from enum import Enum
-from pathlib import Path
-import sys
-
 from .Unit_Converter_Classes import *
 from .SMUTHI_Environment_Class import *
 from .Qutip_Class import *
@@ -390,9 +386,7 @@ class SOCF_Class:
         return G2
         
     def Underestimate_Sampling(self, SOCF_Type:str, Num_of_Samples:int, Sample_Size:int, t, Rabi:Frequency_Class=None, kL:Inv_Metre_Class=None):
-        Samples = Emission_Class.Generate_Subset_List(len(self.Positions), Num_of_Samples, Sample_Size)
-        Sp = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmap())
-        Sm = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmam())
+        Samples = Emission_Class.Generate_Subset_List(len(self.Positions.Nat), Num_of_Samples, Sample_Size)
         G2_Samples = []
         if t == 0:
             if SOCF_Type[:2] == "G2":
@@ -409,7 +403,9 @@ class SOCF_Class:
                     for sample in Samples:
                         Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
                         G2_Samples.append(Emission_Class.Garcia_Homogenious_Calculation(Green_Far_1_SubSet))
-        if t == "inf":
+        elif t == "inf":
+            Sp = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmap())
+            Sm = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmam())
             if SOCF_Type[:2] == "G2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
@@ -428,6 +424,8 @@ class SOCF_Class:
                     state = Qut.Solve_Steady_State()
                     G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Green_Far_1_SubSet, Green_Far_2_SubSet, Sp, Sm))
         else:
+            Sp = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmap())
+            Sm = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmam())
             if SOCF_Type[:2] == "G2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")

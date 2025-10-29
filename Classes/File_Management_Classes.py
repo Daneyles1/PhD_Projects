@@ -12,7 +12,9 @@ class Read_Write_Class:
     # Write a pair of floating-point numbers to a file.
     @staticmethod
     def Write_To_File(file_path, x, y):
-        with open(file_path, 'a') as file:
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)  # <-- create folders if missing
+        with open(file_path, 'a+') as file:
             file.write(f"{x},{y}\n")
 
     # Read a pair of floating-point numbers from a file.
@@ -21,10 +23,13 @@ class Read_Write_Class:
         if not Read_Write_Class.Check_File_Exists(file_path):
             return []
         
+        result = []
         with open(file_path, 'r') as file:
-            line = file.readline().strip()
-            x_str, y_str = line.split(',')
-            return float(x_str), float(y_str)
+            for line in file:
+                if line.strip():  # Skip empty lines
+                    x_str, y_str = line.strip().split(',')
+                    result.append((float(x_str), float(y_str)))
+        return result
         
     # Check if an element already exists in a set.
     @staticmethod
@@ -45,3 +50,9 @@ class Read_Write_Class:
     @staticmethod
     def Write_2D_Data(Filename, Data):
         np.savetxt(Filename, Data, delimiter=',')
+
+    @staticmethod
+    def Sort_Both_Lists(x, y):
+        sorted_pairs = sorted(zip(x, y), key=lambda pair: pair[0])
+        x_sorted, y_sorted = map(list, zip(*sorted_pairs))
+        return x_sorted, y_sorted
