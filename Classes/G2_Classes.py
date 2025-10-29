@@ -1,8 +1,10 @@
+from enum import Enum
+from pathlib import Path
 import sys
-sys.path.insert(1, "Classes")
-from Unit_Converter_Classes import *
-from SMUTHI_Environment_Class import *
-from Qutip_Class import *
+
+from .Unit_Converter_Classes import *
+from .SMUTHI_Environment_Class import *
+from .Qutip_Class import *
 
 import numpy as np
 import random
@@ -396,7 +398,7 @@ class SOCF_Class:
             if SOCF_Type[:2] == "G2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat)
-                    G2_Samples.append(Emission_Class.Garcia_Calculation_Alt(Gamma_Matrix_Subset))
+                    G2_Samples.append(Emission_Class.Garcia_Homogenious_Calculation(Gamma_Matrix_Subset))
             elif SOCF_Type[:2] == "g2":
                 if self.Same_Far == False:
                     for sample in Samples:
@@ -406,7 +408,7 @@ class SOCF_Class:
                 else:
                     for sample in Samples:
                         Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
-                        G2_Samples.append(Emission_Class.Garcia_Calculation_Alt(Green_Far_1_SubSet))
+                        G2_Samples.append(Emission_Class.Garcia_Homogenious_Calculation(Green_Far_1_SubSet))
         if t == "inf":
             if SOCF_Type[:2] == "G2":
                 for sample in Samples:

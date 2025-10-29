@@ -12,12 +12,15 @@ class Read_Write_Class:
     # Write a pair of floating-point numbers to a file.
     @staticmethod
     def Write_To_File(file_path, x, y):
-        with open(file_path, 'w') as file:
+        with open(file_path, 'a') as file:
             file.write(f"{x},{y}\n")
 
     # Read a pair of floating-point numbers from a file.
     @staticmethod
     def Read_From_File(file_path):
+        if not Read_Write_Class.Check_File_Exists(file_path):
+            return []
+        
         with open(file_path, 'r') as file:
             line = file.readline().strip()
             x_str, y_str = line.split(',')
