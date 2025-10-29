@@ -2,7 +2,7 @@ import sys
 sys.path.insert(1, "Classes")
 from Unit_Converter_Classes import *
 from SMUTHI_Environment_Class import *
-from G2_Classes import *
+from G2_Classes import Emission_Class
 
 import cmath
 import numpy as np
@@ -141,7 +141,7 @@ class Qutip_Solver:
         psi0 = self.Fully_Excited_State(self.N_Dipoles)
         H = self.Hamiltonian()
         Collapse_Operators, Gamma_Evals = self.Collapse_Operator_List()
-        Gamma_0 = Emission_Class.Gamma_0_FS(self.omega_0, d).Nat
+        Gamma_0 =  Frequency_Class(((self.omega_0**3)/(3*np.pi)) * np.dot(np.conj(d), d), "Nat").Nat
         Louivillian = liouvillian(H, Collapse_Operators).full()
         Threshold_met = False
         tn = n/Gamma_0

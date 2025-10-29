@@ -292,7 +292,6 @@ class Emission_Class:
                 Far_2[i][j] = np.dot(vec_1, np.conj(vec_2))
         return Far_1, Far_2
 
-
 class SOCF_Class:
     Same_Far = False
     Force_SMUTHI = False
