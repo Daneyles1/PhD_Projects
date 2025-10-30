@@ -174,6 +174,7 @@ class Qutip_Solver:
     def Emission_Rate_over_time(self, t_max, resolution, normalize:bool, psi0=None):
         if psi0==None:
             psi0 = Qutip_Solver.Fully_Excited_State(self.N_Dipoles)
+
         Gamma = self.Gamma_Matrix[0][0]
         t = np.linspace(0, t_max/Gamma, resolution)
         Collapse_Ops, Gamma_Eigenvals = self.Collapse_Operator_List()

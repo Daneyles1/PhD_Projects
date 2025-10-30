@@ -506,7 +506,7 @@ class SOCF_Class:
         return np.mean(G2_Samples)
    
     def Gardiner_Sampling(self, SOCF_Type:str, Num_of_Samples:int, t, Rabi:Frequency_Class=None, kL:Inv_Metre_Class=None):
-        Samples = Emission_Class.Generate_Subset_List(len(self.Positions), Num_of_Samples, 2)
+        Samples = Emission_Class.Generate_Subset_List(len(self.Positions.Nat), Num_of_Samples, 2)
 
         G2_Samples = []
         if t == 0:
@@ -525,7 +525,7 @@ class SOCF_Class:
                     for sample in Samples:
                         Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
                         G2_Samples.append(Emission_Class.Gardiner_Approximation(state, Green_Far_1_SubSet, Green_Far_1_SubSet))
-        if t == "inf":
+        elif t == "inf":
             if SOCF_Type[:2] == "G2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")

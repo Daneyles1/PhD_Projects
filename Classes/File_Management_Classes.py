@@ -12,10 +12,11 @@ class Read_Write_Class:
     # Write a pair of floating-point numbers to a file.
     @staticmethod
     def Write_To_File(file_path, x, y):
+
         path = Path(file_path)
         path.parent.mkdir(parents=True, exist_ok=True)  # <-- create folders if missing
         with open(file_path, 'a+') as file:
-            file.write(f"{x},{y}\n")
+            file.write(f"{np.round(x, 10)},{np.round(y, 10)}\n")
 
     # Read a pair of floating-point numbers from a file.
     @staticmethod
