@@ -369,7 +369,7 @@ class SOCF_Class:
         return G2
 
     def Exact_SOCF(self, SOCF_Type, t, Rabi:Frequency_Class, kL:Inv_Metre_Class):
-        QutiP = Qutip_Solver(self.Positions, self.Gamma_Matrix, self.Delta_Matrix, self.omega0, Rabi, kL)
+        QutiP = Qutip_Solver(self.Gamma_Matrix, self.Delta_Matrix, self.omega0, self.Positions, Rabi, kL)
         Sp = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmap())
         Sm = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmam())
         state = None
@@ -404,45 +404,42 @@ class SOCF_Class:
                         Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
                         G2_Samples.append(Emission_Class.Garcia_Homogenious_Calculation(Green_Far_1_SubSet))
         elif t == "inf":
-            Sp = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmap())
-            Sm = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmam())
             if SOCF_Type[:2] == "G2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Positions_Subset = Distance_Class(Emission_Class.Generate_Subset_of_a_List(sample, self.Positions.Nat), "Nat")
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
                     state = Qut.Solve_Steady_State()
-                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Gamma_Matrix_Subset.Nat, Gamma_Matrix_Subset.Nat, Sp, Sm))
+                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Gamma_Matrix_Subset.Nat, Gamma_Matrix_Subset.Nat, Qut.SigmaPlus, Qut.SigmaMinus))
             elif SOCF_Type[:2] == "g2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
                     Green_Far_2_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_2_Matrix)
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
                     state = Qut.Solve_Steady_State()
-                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Green_Far_1_SubSet, Green_Far_2_SubSet, Sp, Sm))
+                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Green_Far_1_SubSet, Green_Far_2_SubSet, Qut.SigmaPlus, Qut.SigmaMinus))
         else:
-            Sp = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmap())
-            Sm = Qutip_Solver.Generate_m_Operators(len(self.Positions.Nat), qutip.sigmam())
             if SOCF_Type[:2] == "G2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Positions_Subset = Distance_Class(Emission_Class.Generate_Subset_of_a_List(sample, self.Positions.Nat), "Nat")
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0,Positions_Subset, Rabi, kL)
                     state = Qut.Calculate_State_at_t(t)
-                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Gamma_Matrix_Subset.Nat, Gamma_Matrix_Subset.Nat, Sp, Sm))
+                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Gamma_Matrix_Subset.Nat, Gamma_Matrix_Subset.Nat, Qut.SigmaPlus, Qut.SigmaMinus))
             elif SOCF_Type[:2] == "g2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
                     Green_Far_2_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_2_Matrix)
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
                     state = Qut.Calculate_State_at_t(t)
-                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Green_Far_1_SubSet, Green_Far_2_SubSet, Sp, Sm))
+                    G2_Samples.append(Emission_Class.SOCF_State_Calculation(state, Green_Far_1_SubSet, Green_Far_2_SubSet, Qut.SigmaPlus, Qut.SigmaMinus))
 
         return np.mean(G2_Samples)
 
@@ -531,7 +528,7 @@ class SOCF_Class:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Positions_Subset = Distance_Class(Emission_Class.Generate_Subset_of_a_List(sample, self.Positions.Nat), "Nat")
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
                     state = Qut.Solve_Steady_State()
                     G2_Samples.append(Emission_Class.Gardiner_Approximation(state, Gamma_Matrix_Subset.Nat, Gamma_Matrix_Subset.Nat))
             elif SOCF_Type[:2] == "g2":
@@ -540,7 +537,7 @@ class SOCF_Class:
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
                     Green_Far_2_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_2_Matrix)
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
                     state = Qut.Solve_Steady_State()
                     G2_Samples.append(Emission_Class.Gardiner_Approximation(state, Green_Far_1_SubSet, Green_Far_2_SubSet))
         else:
@@ -549,55 +546,21 @@ class SOCF_Class:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Positions_Subset = Distance_Class(Emission_Class.Generate_Subset_of_a_List(sample, self.Positions.Nat), "Nat")
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
                     state = Qut.Calculate_State_at_t(t)
-                    G2_Samples.append(Emission_Class.Gardiner_Approximation(state, Green_Far_1_SubSet, Green_Far_2_SubSet))
+                    G2_Samples.append(Emission_Class.Gardiner_Approximation(state, Gamma_Matrix_Subset.Nat, Gamma_Matrix_Subset.Nat))
             elif SOCF_Type[:2] == "g2":
                 for sample in Samples:
                     Gamma_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat), "Nat")
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Green_Far_1_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
                     Green_Far_2_SubSet = Emission_Class.Generate_Subset_Matrix(sample, self.Far_2_Matrix)
-                    Qut = Qutip_Solver(Positions_Subset, Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Rabi, kL)
+                    Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
                     state = Qut.Calculate_State_at_t(t)
                     G2_Samples.append(Emission_Class.Gardiner_Approximation(state, Green_Far_1_SubSet, Green_Far_2_SubSet))
 
         return np.mean(G2_Samples)
 
-    """
-    def Under_Sampling_Distrbution(self, Sample_Size_Set, Num_of_Samples, a, N):
-        Filename = "Gardiner_Work/Data_Files/Distribution/G2_Samples_" + str(a) + "_" + str(N) + "_"
-        G2_Samples = []
-        for Sample_Size in Sample_Size_Set:
-            Samples = Emission_Class.Generate_Subset_List(len(self.Positions.Nat), Num_of_Samples, Sample_Size)
-            i = 1
-            for sample in Samples:
-                print(sample)
-                print(i)
-                i = i+1
-                Gamma_Matrix_Subset = Emission_Class.Generate_Subset_Matrix(sample, self.Gamma_Matrix.Nat)
-                G2 = np.real(Emission_Class.Garcia_Homogenious_Calculation(Gamma_Matrix_Subset))
-                Read_Write_Class.Write_to_File(Filename + str(Sample_Size), G2)
-            G2_Samples.append(Read_Write_Class.Read_In_Data(Filename + str(Sample_Size)))
-        return G2_Samples
-
-    def Under_Sampling_Distrbution_g2(self, Sample_Size_Set, Num_of_Samples, a, N):
-        Filename = "Gardiner_Work/Data_Files/Distribution/g2xy_Samples_" + str(a) + "_" + str(N) + "_"
-        G2_Samples = []
-        for Sample_Size in Sample_Size_Set:
-            Samples = Emission_Class.Generate_Subset_List(len(self.Positions.Nat), Num_of_Samples, Sample_Size)
-            i = 1
-            for sample in Samples:
-                print(sample)
-                print(i)
-                i = i+1
-                A1_Subset = Emission_Class.Generate_Subset_Matrix(sample, self.Far_1_Matrix)
-                A2_Subset = Emission_Class.Generate_Subset_Matrix(sample, self.Far_2_Matrix)
-                G2 = np.real(Emission_Class.SOCF_Inverted_Calculation(A1_Subset, A2_Subset))
-                Read_Write_Class.Write_to_File(Filename + str(Sample_Size), G2)
-            G2_Samples.append(Read_Write_Class.Read_In_Data(Filename + str(Sample_Size)))
-        return G2_Samples
-    """
 
 #Emission Rate Calculation
     def Exact_Emission_Rate(self, t_max, res=200):
@@ -621,3 +584,5 @@ class SOCF_Class:
         for i in range(len(Exps)):
             mean_Exps.append(Exps[i]/S)
         return t, mean_Exps
+
+    

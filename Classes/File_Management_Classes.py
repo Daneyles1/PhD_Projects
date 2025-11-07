@@ -57,3 +57,30 @@ class Read_Write_Class:
         sorted_pairs = sorted(zip(x, y), key=lambda pair: pair[0])
         x_sorted, y_sorted = map(list, zip(*sorted_pairs))
         return x_sorted, y_sorted
+    
+    @staticmethod
+    def Append_to_1D_Data(Filename, Data):
+        with open(Filename, "a+") as f:
+            f.write(str(Data)+"\n")
+
+    @staticmethod
+    def Read_In_1D_Data(Filename):
+        data = []
+        data_new = []
+        if Read_Write_Class.Check_File_Exists(Filename) == True:
+            with open(Filename, "r+") as f:
+                data = f.readlines()
+            for d in data:
+                if d.replace("/n",'') != '':
+                    data_new.append(float(d.replace("\n",'')))
+        else:
+            print("File Not Found")
+        return data_new
+
+
+
+
+
+
+
+

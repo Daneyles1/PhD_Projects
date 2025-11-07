@@ -7,6 +7,7 @@ import cmath
 import numpy as np
 from sympy import Options
 from qutip import *
+import time
 
 
 class Qutip_Solver:
@@ -73,7 +74,7 @@ class Qutip_Solver:
 
 #Master Equation
     def Hamiltonian(self):
-        VonNeumann = 0
+        VonNeumann = 0 
         for i in range(self.N_Dipoles):
             VonNeumann = VonNeumann + (self.omega_0 - self.omega_L) * self.SigmaPlus[i] * self.SigmaMinus[i] 
         
@@ -111,11 +112,13 @@ class Qutip_Solver:
 
         return Collapse_operators, Gamma_Eigenvals
 
-#State Compuations
     def Solve_Steady_State(self):
-        C_ops, Gamma_Evals = self.Collapse_Operator_List()
+        C_ops, _ = self.Collapse_Operator_List() 
         rho_ss = steadystate(self.Hamiltonian(), C_ops)
         return rho_ss
+
+
+
 
     def Calculate_State_at_t(self, t):
         psi0 = self.Fully_Excited_State(self.N_Dipoles)

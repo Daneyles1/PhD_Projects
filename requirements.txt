@@ -7,3 +7,4 @@ cmath
 pathlib
 sympy
 random
+mpl_toolkits
