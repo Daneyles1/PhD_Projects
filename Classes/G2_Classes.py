@@ -529,7 +529,8 @@ class SOCF_Class:
                     Delta_Matrix_Subset = Frequency_Class(Emission_Class.Generate_Subset_Matrix(sample, self.Delta_Matrix.Nat), "Nat")
                     Positions_Subset = Distance_Class(Emission_Class.Generate_Subset_of_a_List(sample, self.Positions.Nat), "Nat")
                     Qut = Qutip_Solver(Gamma_Matrix_Subset, Delta_Matrix_Subset, self.omega0, Positions_Subset, Rabi, kL)
-                    state = Qut.Solve_Steady_State()
+                    #state = Qut.Solve_Steady_State()
+                    state = Qut.Numerical_Steady_State()
                     G2_Samples.append(Emission_Class.Gardiner_Approximation(state, Gamma_Matrix_Subset.Nat, Gamma_Matrix_Subset.Nat))
             elif SOCF_Type[:2] == "g2":
                 for sample in Samples:

@@ -16,8 +16,8 @@ class Qutip_Solver:
                  Positons:Distance_Class = Distance_Class([], "Nat") ,Rabi:Frequency_Class=Frequency_Class(0, "Nat"), 
                  kL:Inv_Metre_Class=Inv_Metre_Class([0,0,0], "Nat"), T:Temp_Class=Temp_Class(0, "Nat")):
         option = Options()
-        option.atol = 10**-11
-        option.rtol = 10**-11
+        option.atol = 10**-9
+        option.rtol = 10**-9
 
         self.Positions = Positons.Nat
         self.N_Dipoles = len(Gamma_Matrix.Nat)
@@ -36,18 +36,13 @@ class Qutip_Solver:
 
     @staticmethod
     def Generate_m_Operators(m, Op:Qobj):
-        Op_Set = []
+        eye = qeye(2)
+        ops = []
         for i in range(m):
-            temp = Op
-            for j in range(m):
-                if i == j:
-                    pass
-                elif i < j:
-                    temp = tensor(temp, identity(2))
-                elif i > j:
-                    temp = tensor(identity(2), temp)
-            Op_Set.append(temp)
-        return Op_Set
+            # tensor([I, I, ..., op, ..., I]) with a single tensor() call per i
+            factors = [eye]*i + [Op] + [eye]*(m-i-1)
+            ops.append(tensor(factors))
+        return ops
 
 #State Options
     @staticmethod
@@ -112,12 +107,47 @@ class Qutip_Solver:
 
         return Collapse_operators, Gamma_Eigenvals
 
+
     def Solve_Steady_State(self):
-        C_ops, _ = self.Collapse_Operator_List() 
-        rho_ss = steadystate(self.Hamiltonian(), C_ops)
-        return rho_ss
+        """
+        Faster, more robust steady-state solver:
+        - Early-exit to ground state if T=0 and no drive
+        - Tiny dephasing added to widen Liouvillian gap (prevents stalls)
+        - 'direct' + RCM first, falls back to 'svd' if needed
+        """
+        tol = 1e-7
+        maxiter = 20000
+        add_tiny_deph = True
+        deph_scale = 1e-6  # tiny dephasing = deph_scale * mean(diag(Gamma))
 
+        # Early exit: T=0 and no drive
+        if (getattr(self, "Temp", 0.0) == 0.0) and (self.Rabi == 0 or self.Rabi == 0.0):
+            g = self.Fully_Ground_State()
+            return g * g.dag()
 
+        c_ops, _ = self.Collapse_Operator_List()
+        H = self.Hamiltonian()
+
+        if add_tiny_deph:
+            mean_gamma = float(np.mean(np.real(np.diag(self.Gamma_Matrix))) or 1.0)
+            tiny = deph_scale * mean_gamma
+            if tiny > 0:
+                # identity with matching tensor dims (avoid the dims mismatch)
+                I_full = tensor([qeye(2)] * self.N_Dipoles)
+                for i in range(self.N_Dipoles):
+                    ni = self.SigmaPlus[i] * self.SigmaMinus[i]
+                    c_ops.append(np.sqrt(tiny) * (ni - 0.5 * I_full))
+
+        # Try sparse LU with RCM first
+        try:
+            rho_ss = steadystate(H, c_ops, method="direct",
+                                use_rcm=True, tol=tol, maxiter=maxiter)
+            return rho_ss
+        except Exception:
+            # Fall back to SVD nullspace solve (robust for near-singular L)
+            L = liouvillian(H, c_ops)
+            rho_ss = steadystate(L, method="svd", tol=max(tol, 1e-9), maxiter=maxiter)
+            return rho_ss
 
 
     def Calculate_State_at_t(self, t):
@@ -139,7 +169,7 @@ class Qutip_Solver:
         r11 = 0.5 + (0.25*(self.Gamma_Matrix[0][0]**2) + omega**2 )/A
         return [[r00, r01],[r10, r11]]
 
-    def Numerical_Steady_State(self, n, d, Threshold):
+    def Numerical_Steady_State(self, n=10, d=[0,0,1], Threshold=1e-6):
         psi0 = self.Fully_Excited_State(self.N_Dipoles)
         H = self.Hamiltonian()
         Collapse_Operators, Gamma_Evals = self.Collapse_Operator_List()
@@ -147,7 +177,7 @@ class Qutip_Solver:
         Louivillian = liouvillian(H, Collapse_Operators).full()
         Threshold_met = False
         tn = n/Gamma_0
-        times = np.linspace(0, tn, 100)
+        times = np.linspace(0, tn, 500)
         N_ops = []
         counter = 0
         while Threshold_met == False:
