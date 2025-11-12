@@ -77,6 +77,14 @@ class Read_Write_Class:
             print("File Not Found")
         return data_new
 
+    @staticmethod
+    def Get_Repo_Root():
+        try:
+        # Works when this file is executed directly as a .py
+            return Path(__file__).resolve().parents[0]
+        except NameError:
+            # Works when running from a Jupyter notebook
+            return Path().resolve()
 
 
 

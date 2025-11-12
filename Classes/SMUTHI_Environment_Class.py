@@ -1,5 +1,7 @@
 
 from .Unit_Converter_Classes import *
+import logging
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
 
 import smuthi.postprocessing.graphical_output as go
 import smuthi.postprocessing.far_field as fd
@@ -9,13 +11,19 @@ import smuthi.utility.cuda
 import smuthi.simulation
 import smuthi.particles
 import smuthi.layers
+logging.getLogger('smuthi').setLevel(logging.CRITICAL)
+import os
 
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 from scipy import constants as const
+from tqdm import tqdm
 
-
+@contextmanager
+def suppress_output():
+    with open(os.devnull, 'w') as fnull, redirect_stdout(fnull), redirect_stderr(fnull):
+        yield
 
 class Smuthi_Environment: # Contain all information regarding a Environment setup in SMUTHI
 
@@ -33,6 +41,8 @@ class Smuthi_Environment: # Contain all information regarding a Environment setu
     Basic_Layers = smuthi.layers.LayerSystem([0,0], [1,1])
     scatterers = []
     fixing_Value = -100
+    
+
 
     @staticmethod
     def How_To_Use():
@@ -151,41 +161,41 @@ class Smuthi_Environment: # Contain all information regarding a Environment setu
                 for j in range(N):
                     Delta[i][j] = Delta_in.SI[i][j]
                     Gamma[i][j] = Gamma_in.SI[i][j]
-        for i in range(N):
-            Done = True
-            for j in range(N):
-                if Gamma[i][j] == self.fixing_Value or Delta[i][j] == self.fixing_Value:
-                    Done = False
-            if Done == False:
-                d1 = smuthi.initial_field.DipoleSource(wavelength.Nano, Moments.SI[i]*self.norm, Positions.Nano[i])
-                simulation_A = self.Run_Simulation(d1)
-                self.Run = False
+        
+        for i in tqdm(range(N), desc="Smuthi Matrix", unit="config"):
+            with suppress_output():
+                Done = True
                 for j in range(N):
-                    if N != 1 and self.show == True:
-                        print(str(j+1) + "/" + str(N) + ", " + str(i+1) + "/" + str(N))
                     if Gamma[i][j] == self.fixing_Value or Delta[i][j] == self.fixing_Value:
-                        if i == j: #Diagonal Terms
-                            Gamma[i][i] = self.Calculate_Rate_From_Power(d1, omega).SI
-                            Delta[i][i] = 0
-                        if j > i:
-                            if Smuthi_Environment.Check_Not_Overlapping_Emitters(Positions.Nat[i], Positions.Nat[j]) == False:
-                                pos2 = Distance_Class(Positions.Nano[j], "Nano")
-                                d2 = Dipole_Moment_Class(Moments.SI[j], "SI")
-                                E12 = self.Run_Total_E_Field_Calculaion(simulation_A, pos2)
-                                Gam, Del = self.Calculate_Rate_From_E_Field(E12, d2, omega)
-                                Gamma[i][j] = Gam.SI
-                                Gamma[j][i] = np.conj(Gam.SI) #Using γij = γji^*
-                                Delta[i][j] = Del.SI
-                                Delta[j][i] = np.conj(Del.SI)
-                            else:
-                                Gamma[i][j] = self.Calculate_Rate_From_Power(d1, omega).SI
-                                Delta[i][j] = 0
-                                Gamma[j][i] = np.conj(Gamma[i][j]) #Using γij = γji^*
-                                Delta[j][i] = 0
-                    else:
-                        if self.show == True:
-                            print("Already computed")
-                self.Run = True
+                        Done = False
+                if Done == False:
+                    d1 = smuthi.initial_field.DipoleSource(wavelength.Nano, Moments.SI[i]*self.norm, Positions.Nano[i])
+                    simulation_A = self.Run_Simulation(d1)
+                    self.Run = False
+                    for j in range(N):
+                        if Gamma[i][j] == self.fixing_Value or Delta[i][j] == self.fixing_Value:
+                            if i == j: #Diagonal Terms
+                                Gamma[i][i] = self.Calculate_Rate_From_Power(d1, omega).SI
+                                Delta[i][i] = 0
+                            if j > i:
+                                if Smuthi_Environment.Check_Not_Overlapping_Emitters(Positions.Nat[i], Positions.Nat[j]) == False:
+                                    pos2 = Distance_Class(Positions.Nano[j], "Nano")
+                                    d2 = Dipole_Moment_Class(Moments.SI[j], "SI")
+                                    E12 = self.Run_Total_E_Field_Calculaion(simulation_A, pos2)
+                                    Gam, Del = self.Calculate_Rate_From_E_Field(E12, d2, omega)
+                                    Gamma[i][j] = Gam.SI
+                                    Gamma[j][i] = np.conj(Gam.SI) #Using γij = γji^*
+                                    Delta[i][j] = Del.SI
+                                    Delta[j][i] = np.conj(Del.SI)
+                                else:
+                                    Gamma[i][j] = self.Calculate_Rate_From_Power(d1, omega).SI
+                                    Delta[i][j] = 0
+                                    Gamma[j][i] = np.conj(Gamma[i][j]) #Using γij = γji^*
+                                    Delta[j][i] = 0
+                        else:
+                            if self.show == True:
+                                print("Already computed")
+                    self.Run = True
         return Frequency_Class(Gamma, "SI"), Frequency_Class(Delta, "SI")
 
     def Calculate_Rate_Component(self, Positions:Distance_Class, Moments:Dipole_Moment_Class, wavelength:Distance_Class):

@@ -116,9 +116,9 @@ class Qutip_Solver:
         - 'direct' + RCM first, falls back to 'svd' if needed
         """
         tol = 1e-7
-        maxiter = 20000
+        maxiter = 10000
         add_tiny_deph = True
-        deph_scale = 1e-6  # tiny dephasing = deph_scale * mean(diag(Gamma))
+        deph_scale = 0  # tiny dephasing = deph_scale * mean(diag(Gamma))
 
         # Early exit: T=0 and no drive
         if (getattr(self, "Temp", 0.0) == 0.0) and (self.Rabi == 0 or self.Rabi == 0.0):

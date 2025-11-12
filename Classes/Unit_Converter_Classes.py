@@ -2,7 +2,10 @@ import numpy as np
 from scipy import constants as const
 
 #Class to convert between Natural units and S.I. units
-class NAT_SI_conversion: 
+class NAT_SI_conversion: #Natural units to SI unit Converion
+    Nat_to_Joules = const.e
+    Joules_to_Nat = 1/Nat_to_Joules
+
     Nat_to_Hertz = const.e/const.hbar
     Hertz_to_Nat = 1/Nat_to_Hertz
 
