@@ -222,7 +222,7 @@ class Sampling_Methods:
 
     def Inverted_Array_Distributions(self, a, N_Samples):
         Filepath = str(self.repo_root / "Data Files" / "Distributions")
-        Filename = f"Mwise_Dist_m{self.m}_a{a}_N{self.N}_Dim{self.Dim}.txt"
+        Filename = f"Inv_Mwise_Dist_m{self.m}_a{a}_N{self.N}_Dim{self.Dim}.txt"
 
         Data = Read_Write_Class.Read_In_1D_Data(Filepath + "/" + Filename) 
         if len(Data) == 0 and N_Samples == 0:
@@ -239,14 +239,65 @@ class Sampling_Methods:
             elif self.SOCF_Type == SOCF_Type.g2_xy:
                 G2.Compute_Far_Field(np.pi/2, np.pi/2, np.pi/2, 0)
 
-            for S in range(N_Samples):
+            for S in tqdm(range(N_Samples), desc=f"Inverted Sample, m={self.m}",unit='config'):
                 g2 = G2.Underestimate_Sampling(self.SOCF_Type.value, 1, self.m, 0)
                 Read_Write_Class.Append_to_1D_Data(Filepath + "/" + Filename, np.real(g2))
 
         return Read_Write_Class.Read_In_1D_Data(Filepath + "/" + Filename)
 
+    def Finite_Time_Distributions(self, a, N_Samples, t):
+        Filepath = str(self.repo_root / "Data Files" / "Distributions")
+        Filename = f"Fin_t{t}_Mwise_Dist_m{self.m}_a{a}_N{self.N}_Dim{self.Dim}.txt"
 
-                
+        kL = Inv_Metre_Class([0,0,0], "Nat")
+        Rabi = Frequency_Class(0, "Nat")
+
+        Data = Read_Write_Class.Read_In_1D_Data(Filepath + "/" + Filename) 
+        if len(Data) == 0 and N_Samples == 0:
+            raise Exception("The current configuration will produce no data point to plot")
+        else:
+            Dipole_Moments = Dipole_Moment_Class(Generate_Dipole_Moments(self.N, self.Dim), "Nat")
+            Emitter_Positions = Distance_Class(Generate_Emitter_Configuration(self.N, self.Dim, a*self.wave.Nat), "Nat")
+            G2 = SOCF_Class(self.Env, Emitter_Positions, Dipole_Moments, self.omega_0)
+            if self.SOCF_Type == SOCF_Type.G2:
+                G2.Compute_Decay_Rates()
+            elif self.SOCF_Type == SOCF_Type.g2_xx:
+                G2.Compute_Far_Field(np.pi/2, np.pi/2, 0, 0)
+            elif self.SOCF_Type == SOCF_Type.g2_xy:
+                G2.Compute_Far_Field(np.pi/2, np.pi/2, np.pi/2, 0)
+
+            for S in tqdm(range(N_Samples), desc=f"Finite Time Sample, m={self.m}",unit='config'):
+                g2 = G2.Underestimate_Sampling(self.SOCF_Type.value, 1, self.m, t, Rabi, kL)
+                Read_Write_Class.Append_to_1D_Data(Filepath + "/" + Filename, np.real(g2))
+
+        return Read_Write_Class.Read_In_1D_Data(Filepath + "/" + Filename)
+    
+    def Steady_State_Distributions(self, a, N_Samples, Rabi_Factor, kL:Inv_Metre_Class):
+        Filepath = str(self.repo_root / "Data Files" / "Distributions")
+        kL_str = f"{kL.Nat[0]}{kL.Nat[1]}{kL.Nat[2]}"
+        Filename = f"SS_Mwise_Dist_m{self.m}_a{a}_N{self.N}_Dim{self.Dim}_R{Rabi_Factor}_kL{kL_str}.txt"
+
+        Rabi = Frequency_Class(Rabi_Factor * (self.omega_0.Nat)**3 / (3*np.pi), "Nat")
+
+        Data = Read_Write_Class.Read_In_1D_Data(Filepath + "/" + Filename) 
+        if len(Data) == 0 and N_Samples == 0:
+            raise Exception("The current configuration will produce no data point to plot")
+        else:
+            Dipole_Moments = Dipole_Moment_Class(Generate_Dipole_Moments(self.N, self.Dim), "Nat")
+            Emitter_Positions = Distance_Class(Generate_Emitter_Configuration(self.N, self.Dim, a*self.wave.Nat), "Nat")
+            G2 = SOCF_Class(self.Env, Emitter_Positions, Dipole_Moments, self.omega_0)
+            if self.SOCF_Type == SOCF_Type.G2:
+                G2.Compute_Decay_Rates()
+            elif self.SOCF_Type == SOCF_Type.g2_xx:
+                G2.Compute_Far_Field(np.pi/2, np.pi/2, 0, 0)
+            elif self.SOCF_Type == SOCF_Type.g2_xy:
+                G2.Compute_Far_Field(np.pi/2, np.pi/2, np.pi/2, 0)
+
+            for S in tqdm(range(N_Samples), desc=f"Steady State Sample, m={self.m}",unit='config'):
+                g2 = G2.Underestimate_Sampling(self.SOCF_Type.value, 1, self.m, "inf", Rabi, kL)
+                Read_Write_Class.Append_to_1D_Data(Filepath + "/" + Filename, np.real(g2))
+
+        return Read_Write_Class.Read_In_1D_Data(Filepath + "/" + Filename)
         
 
 

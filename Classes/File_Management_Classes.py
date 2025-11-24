@@ -1,5 +1,6 @@
 import numpy as np
 from pathlib import Path
+import csv
 
 class Read_Write_Class:
 
@@ -40,9 +41,12 @@ class Read_Write_Class:
     # Read 2D data from a CSV file into a NumPy array.
     @staticmethod
     def Read_In_2D_Data(Filename):
+        import csv
         Data = []
-        if Read_Write_Class.Check_File_Exists(Filename) == True:
-            Data = np.loadtxt(Filename, delimiter=',', dtype='float')
+        if Read_Write_Class.Check_File_Exists(Filename):
+            with open(Filename, "r") as f:
+                reader = csv.reader(f)
+                Data = [[float(x) for x in row] for row in reader]
         else:
             print("File Not Found")
         return Data

@@ -8,3 +8,8 @@ pathlib
 sympy
 random
 mpl_toolkits
+Ipython
+enum
+tqdm
+os
+sys
